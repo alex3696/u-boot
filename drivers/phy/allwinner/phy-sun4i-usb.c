@@ -210,10 +210,10 @@ static int sun4i_usb_phy_power_on(struct phy *phy)
 	struct sun4i_usb_phy_data *data = dev_get_priv(phy->dev);
 	struct sun4i_usb_phy_plat *usb_phy = &data->usb_phy[phy->id];
 
-	if (initial_usb_scan_delay) {
-		mdelay(initial_usb_scan_delay);
-		initial_usb_scan_delay = 0;
-	}
+//	if (initial_usb_scan_delay) {
+//		mdelay(initial_usb_scan_delay);
+//		initial_usb_scan_delay = 0;
+//	}
 
 	/* For phy0 only turn on Vbus if we don't have an ext. Vbus */
 	if (phy->id == 0 && sun4i_usb_phy_vbus_detect(phy)) {
@@ -564,6 +564,12 @@ static int sun4i_usb_phy_probe(struct udevice *dev)
 	};
 
 	debug("Allwinner Sun4I USB PHY driver loaded\n");
+	if (initial_usb_scan_delay)
+        {
+		printf("\nWaiting initial devices powerup %d \n", initial_usb_scan_delay);
+		mdelay(initial_usb_scan_delay);
+		initial_usb_scan_delay = 0;
+	}
 	return 0;
 }
 
