@@ -143,7 +143,8 @@ static void ehci_set_usbmode(struct ehci_ctrl *ctrl)
 static void ehci_powerup_fixup(struct ehci_ctrl *ctrl, uint32_t *status_reg,
 			       uint32_t *reg)
 {
-	mdelay(50);
+	printf("\n fixup powerup INITIAL_USB_SCAN_DELAY %d\n", CONFIG_INITIAL_USB_SCAN_DELAY);
+	mdelay(CONFIG_INITIAL_USB_SCAN_DELAY);
 }
 
 static uint32_t *ehci_get_portsc_register(struct ehci_ctrl *ctrl, int port)
