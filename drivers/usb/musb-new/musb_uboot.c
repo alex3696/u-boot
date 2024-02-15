@@ -1,6 +1,7 @@
 #include <common.h>
 #include <console.h>
 #include <dm.h>
+#include <env.h>
 #include <malloc.h>
 #include <watchdog.h>
 #include <linux/delay.h>
@@ -217,8 +218,25 @@ static int _musb_reset_root_port(struct musb_host_data *host,
 int musb_lowlevel_init(struct musb_host_data *host)
 {
 	void *mbase;
-	/* USB spec says it may take up to 1 second for a device to connect */
-	unsigned long timeout = get_timer(0) + 1000;
+	/* USB spec says it may take up to 1 second for a device to connect
+	 * Wait for power to become stable,
+	 * plus spec-defined max time for device to connect
+	 * but allow this time to be increased via env variable as some
+	 * devices break the spec and require longer warm-up times
+	 */	
+	unsigned pgood_delay = 50;
+#if CONFIG_IS_ENABLED(ENV_SUPPORT)
+	const char __maybe_unused *env;
+	env = env_get("usb_pgood_delay");
+	if (env)
+		pgood_delay = max(pgood_delay, 
+				  (unsigned)simple_strtol(env, NULL, 0));
+#endif
+	unsigned long timeout = get_timer(0) + pgood_delay 
+				+ CONFIG_USB_HUB_DEBOUNCE_TIMEOUT;
+	debug("Poweron: query_delay=%d connect_timeout=%d\n",
+	      pgood_delay, timeout);	
+	
 	int ret;
 
 	if (!host->host) {
