@@ -457,18 +457,19 @@ static int usb_scan_port(struct usb_device_scan *usb_scan)
 	 */
 	if (get_timer(0) < hub->query_delay)
 		return 0;
+	/* Remove this device from scanning list
+	 * when hub->connect_timeout is expired
+	 */
+	if (get_timer(0) >= hub->connect_timeout) {
+		debug("devnum=%d port=%d: timeout\n",
+		      dev->devnum, i + 1);
+		/* Remove this device from scanning list */
+		goto done;
+	}
 
 	ret = usb_get_port_status(dev, i + 1, portsts);
 	if (ret < 0) {
 		debug("get_port_status failed\n");
-		if (get_timer(0) >= hub->connect_timeout) {
-			debug("devnum=%d port=%d: timeout\n",
-			      dev->devnum, i + 1);
-			/* Remove this device from scanning list */
-			list_del(&usb_scan->list);
-			free(usb_scan);
-			return 0;
-		}
 		return 0;
 	}
 
@@ -485,14 +486,6 @@ static int usb_scan_port(struct usb_device_scan *usb_scan)
 	 */
 	if (!(portchange & USB_PORT_STAT_C_CONNECTION) &&
 	    !(portstatus & USB_PORT_STAT_CONNECTION)) {
-		if (get_timer(0) >= hub->connect_timeout) {
-			debug("devnum=%d port=%d: timeout\n",
-			      dev->devnum, i + 1);
-			/* Remove this device from scanning list */
-			list_del(&usb_scan->list);
-			free(usb_scan);
-			return 0;
-		}
 		return 0;
 	}
 
@@ -555,6 +548,7 @@ static int usb_scan_port(struct usb_device_scan *usb_scan)
 		       hub->overcurrent_count[i]);
 	}
 
+done:
 	/*
 	 * We're done with this device, so let's remove this device from
 	 * scanning list
