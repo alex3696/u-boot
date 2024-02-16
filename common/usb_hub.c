@@ -484,8 +484,8 @@ static int usb_scan_port(struct usb_device_scan *usb_scan)
 	 * device is connected to the port (eg: CCS bit is set but CSC is not
 	 * in the PORTSC register of a root hub), ignore such case.
 	 */
-	if (!(portchange & USB_PORT_STAT_C_CONNECTION) &&
-	    !(portstatus & USB_PORT_STAT_CONNECTION)) {
+	if (!((portstatus & USB_PORT_STAT_CONNECTION) &&
+	      (portchange & USB_PORT_STAT_C_CONNECTION) ) ) {
 		return 0;
 	}
 
