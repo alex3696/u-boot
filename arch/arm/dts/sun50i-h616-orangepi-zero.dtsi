@@ -122,6 +122,7 @@
 	 * enabling OHCI0 and EHCI0.
 	 */
 	dr_mode = "peripheral";
+	dr_mode = "host";
 	status = "okay";
 };
 
